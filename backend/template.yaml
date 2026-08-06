@@ -1,0 +1,5 @@
+# This file has been removed.
+# AWS SAM has been replaced with AWS Amplify Hosting.
+# Backend resources (Cognito, API Gateway, Lambda, DynamoDB, S3, SNS, EventBridge)
+# are provisioned via AWS Console / CLI / CloudFormation.
+# See docs/amplify-deployment-guide.md for details.
