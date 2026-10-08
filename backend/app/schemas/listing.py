@@ -249,7 +249,7 @@ class UpdateListingRequest(BaseModel):
 
 
 class ListingResponse(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
 
     listing_id: str = Field(alias="listingId")
     seller_id: str = Field(alias="sellerId")

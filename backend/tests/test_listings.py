@@ -221,7 +221,7 @@ def test_get_all_active_listings(mock_get_repo):
             "price": Decimal("4500"),
         },
     ]
-    mock_repo.list_listings.return_value = (mock_items, None)
+    mock_repo.query_gsi1.return_value = (mock_items, None)
 
     event = make_event("GET", "/listings")
     response = lambda_handler(event)
@@ -231,14 +231,19 @@ def test_get_all_active_listings(mock_get_repo):
     assert body["success"] is True
     assert body["data"]["count"] == 2
     assert len(body["data"]["listings"]) == 2
-    # Verify default status passed was ACTIVE
-    mock_repo.list_listings.assert_called_once_with(
+    # Verify GSI1 query parameters
+    mock_repo.query_gsi1.assert_called_once_with(
+        gsi1_pk="MARKETPLACE",
         status="ACTIVE",
         category=None,
-        district=None,
         state=None,
+        district=None,
         seller_role=None,
+        quality=None,
+        search=None,
         limit=50,
+        scan_index_forward=False,
+        exclusive_start_key=None,
     )
 
 
@@ -462,7 +467,7 @@ def test_unsupported_listing_method():
 def test_query_filter_parameters(mock_get_repo):
     mock_repo = MagicMock()
     mock_get_repo.return_value = mock_repo
-    mock_repo.list_listings.return_value = ([], None)
+    mock_repo.query_gsi1.return_value = ([], None)
 
     filters = {
         "category": "BY_PRODUCTS",
@@ -476,13 +481,18 @@ def test_query_filter_parameters(mock_get_repo):
     response = lambda_handler(event)
 
     assert response["statusCode"] == 200
-    mock_repo.list_listings.assert_called_once_with(
+    mock_repo.query_gsi1.assert_called_once_with(
+        gsi1_pk="MARKETPLACE",
         status="ACTIVE",
         category="BY_PRODUCTS",
-        district="Pune",
         state="Maharashtra",
+        district="Pune",
         seller_role="BYPRODUCT_SELLER",
+        quality=None,
+        search=None,
         limit=25,
+        scan_index_forward=False,
+        exclusive_start_key=None,
     )
 
 
@@ -564,7 +574,7 @@ def test_invalid_json_payload(farmer_claims):
 def test_internal_server_error_handled(mock_get_repo):
     mock_repo = MagicMock()
     mock_get_repo.return_value = mock_repo
-    mock_repo.list_listings.side_effect = RuntimeError("Unexpected DynamoDB network drop")
+    mock_repo.query_gsi1.side_effect = RuntimeError("Unexpected DynamoDB network drop")
 
     event = make_event("GET", "/listings")
     response = lambda_handler(event)

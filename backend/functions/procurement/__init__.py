@@ -1,0 +1,1 @@
+"""Procurement lambda function package."""

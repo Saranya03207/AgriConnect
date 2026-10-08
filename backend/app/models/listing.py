@@ -68,13 +68,11 @@ class Listing:
     def build_gsi1_pk(category: Optional[str] = None) -> str:
         """
         Builds GSI1 Partition Key for Marketplace Discovery.
-        Category query: CATEGORY#<CATEGORY>
-        Global marketplace: MARKETPLACE
+        In Phase 3 MVP, every listing MUST use:
+          GSI1PK = 'MARKETPLACE'
+        Do NOT use CATEGORY#<category> as GSI1PK.
+        Category, state, district, sellerRole, and quality are filtered via FilterExpression.
         """
-        if category and category.strip():
-            clean = category.strip().upper().replace("-", "_").replace(" ", "_")
-            if clean and clean != "ALL":
-                return f"CATEGORY#{clean}"
         return "MARKETPLACE"
 
     @staticmethod
@@ -108,7 +106,7 @@ class Listing:
 
     @property
     def computed_gsi1_pk(self) -> str:
-        return self.gsi1_pk or self.build_gsi1_pk(self.category)
+        return "MARKETPLACE"
 
     @property
     def computed_gsi1_sk(self) -> str:
@@ -206,9 +204,15 @@ class Listing:
         )
 
     def to_dict(self) -> Dict[str, Any]:
-        """Returns clean representation for API responses."""
+        """Returns clean representation for API responses without internal persistence/index fields."""
         data = asdict(self)
-        data.pop("pk", None)
-        data.pop("sk", None)
+        internal_fields = {
+            "pk", "sk", "entityType",
+            "gsi1_pk", "gsi1_sk", "gsi2_pk", "gsi2_sk",
+            "GSI1PK", "GSI1SK", "GSI2PK", "GSI2SK",
+            "gsi1Pk", "gsi1Sk", "gsi2Pk", "gsi2Sk",
+        }
+        for key in internal_fields:
+            data.pop(key, None)
         return data
 

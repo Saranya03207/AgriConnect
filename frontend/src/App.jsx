@@ -14,7 +14,10 @@ import DashboardPage from './pages/DashboardPage';
 import ProfilePage from './pages/ProfilePage';
 import ListingsPage from './pages/ListingsPage';
 import ListingDetailPage from './pages/ListingDetailPage';
-import ProcurementPlaceholderPage from './pages/ProcurementPlaceholderPage';
+import ProcurementMarketplacePage from './pages/procurement/ProcurementMarketplacePage';
+import ProcurementDetailPage from './pages/procurement/ProcurementDetailPage';
+import MyRequestsPage from './pages/procurement/MyRequestsPage';
+import MyResponsesPage from './pages/procurement/MyResponsesPage';
 import OrdersPlaceholderPage from './pages/OrdersPlaceholderPage';
 import ServicesPlaceholderPage from './pages/ServicesPlaceholderPage';
 import MessagesPlaceholderPage from './pages/MessagesPlaceholderPage';
@@ -56,7 +59,10 @@ export function App() {
           }
         >
           <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/procurement" element={<ProcurementPlaceholderPage />} />
+          <Route path="/procurement" element={<ProcurementMarketplacePage />} />
+          <Route path="/procurement/:rfqId" element={<ProcurementDetailPage />} />
+          <Route path="/procurement/my-requests" element={<MyRequestsPage />} />
+          <Route path="/procurement/my-responses" element={<MyResponsesPage />} />
           <Route path="/orders" element={<OrdersPlaceholderPage />} />
           <Route path="/services" element={<ServicesPlaceholderPage />} />
           <Route path="/messages" element={<MessagesPlaceholderPage />} />

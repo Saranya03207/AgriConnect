@@ -117,8 +117,14 @@ class ListingsRepository:
 
     def query_gsi1(
         self,
-        gsi1_pk: str,
+        gsi1_pk: str = "MARKETPLACE",
         status: Optional[str] = "ACTIVE",
+        category: Optional[str] = None,
+        state: Optional[str] = None,
+        district: Optional[str] = None,
+        seller_role: Optional[str] = None,
+        quality: Optional[str] = None,
+        search: Optional[str] = None,
         limit: int = 50,
         scan_index_forward: bool = False,
         exclusive_start_key: Optional[Dict[str, Any]] = None,
@@ -129,15 +135,18 @@ class ListingsRepository:
         """
         Queries GSI1 (Marketplace Discovery).
         Key condition:
-          GSI1PK = :gsi1pk
+          GSI1PK = :gsi1pk (defaults to 'MARKETPLACE')
           AND begins_with(GSI1SK, :gsi1sk_prefix) (when status filter active)
         Default sort order: newest first (scan_index_forward=False).
+        Applies optional FilterExpressions for:
+          category, state, district, sellerRole, quality, search.
+        Preserves LastEvaluatedKey for pagination.
         """
         attr_names: Dict[str, str] = {
             "#gsi1pk": "GSI1PK",
         }
         attr_values: Dict[str, Any] = {
-            ":gsi1pk": gsi1_pk,
+            ":gsi1pk": gsi1_pk or "MARKETPLACE",
         }
 
         if status and status.upper() != "ALL":
@@ -147,7 +156,61 @@ class ListingsRepository:
         else:
             key_condition = "#gsi1pk = :gsi1pk"
 
-        # Merge additional filter attributes if provided (e.g. district, state, sellerRole)
+        # Build optional FilterExpression clauses
+        filter_clauses = []
+
+        if category and category.strip().upper() != "ALL":
+            filter_clauses.append("#category = :cat_val")
+            attr_names["#category"] = "category"
+            attr_values[":cat_val"] = category.strip().upper()
+
+        if state and state.strip():
+            filter_clauses.append("#state = :state_val")
+            attr_names["#state"] = "state"
+            attr_values[":state_val"] = state.strip()
+
+        if district and district.strip():
+            filter_clauses.append("#district = :district_val")
+            attr_names["#district"] = "district"
+            attr_values[":district_val"] = district.strip()
+
+        if seller_role and seller_role.strip():
+            filter_clauses.append("#sellerRole = :role_val")
+            attr_names["#sellerRole"] = "sellerRole"
+            attr_values[":role_val"] = seller_role.strip().upper()
+
+        if quality and quality.strip():
+            filter_clauses.append("#quality = :quality_val")
+            attr_names["#quality"] = "quality"
+            attr_values[":quality_val"] = quality.strip()
+
+        if search and search.strip():
+            clean_search = search.strip()
+            # Generate common case variations for substring matching in DynamoDB
+            search_variants = list(dict.fromkeys([
+                clean_search,
+                clean_search.lower(),
+                clean_search.capitalize(),
+                clean_search.upper(),
+            ]))
+            search_subclauses = []
+            for idx, term in enumerate(search_variants):
+                token = f":search_{idx}"
+                attr_values[token] = term
+                search_subclauses.append(
+                    f"contains(#search_title, {token}) OR contains(#search_desc, {token}) OR contains(#search_loc, {token})"
+                )
+            attr_names["#search_title"] = "title"
+            attr_names["#search_desc"] = "description"
+            attr_names["#search_loc"] = "location"
+            filter_clauses.append(f"({' OR '.join(search_subclauses)})")
+
+        if filter_expression:
+            filter_clauses.append(f"({filter_expression})")
+
+        final_filter_expr = " AND ".join(filter_clauses) if filter_clauses else None
+
+        # Merge additional custom filter attributes if provided
         if expression_attribute_names:
             attr_names.update(expression_attribute_names)
         if expression_attribute_values:
@@ -158,7 +221,7 @@ class ListingsRepository:
             index_name="GSI1",
             expression_attribute_names=attr_names,
             expression_attribute_values=attr_values,
-            filter_expression=filter_expression,
+            filter_expression=final_filter_expr,
             scan_index_forward=scan_index_forward,
             limit=limit,
             exclusive_start_key=exclusive_start_key,
