@@ -1,1 +1,0 @@
-// import { GeoLocation } from './user.types';

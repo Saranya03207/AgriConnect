@@ -1,97 +1,89 @@
 # AgriConnect
 
-**AI-Powered Agricultural Resource and By-product Exchange Platform**
+**AI-Powered Agricultural Value-Chain & By-product Exchange Platform**
 
-A cloud-native, serverless marketplace connecting farmers, buyers, agribusinesses, and logistics
-providers — powered by Google Gemini AI and AWS.
+AgriConnect is a cloud-native, serverless platform connecting:
+1. **Seed Producers**
+2. **Farmers / Crop Producers**
+3. **By-product Sellers**
+4. **Buyers / Procurement**
+5. **Service Providers** (Labour, Machinery, Transport, Cold Storage)
+6. **Processors / Agro-Industries**
+*(with a distinct privileged **Admin** role)*
+
+---
+
+## Architecture Overview
+
+- **Frontend**: React 18, Vite, JavaScript, Tailwind CSS, React Router, React Hook Form, Zod
+- **Backend**: Python 3.12, AWS Lambda, boto3
+- **API**: Amazon API Gateway (HTTP API v2) with Amazon Cognito JWT Authorizer
+- **Database**: Amazon DynamoDB (`AgriConnect-Main` single-table design)
+- **Storage**: Amazon S3 (Private bucket with presigned upload/download URLs)
+- **AI Intelligence**: OpenAI API (GPT-4o-mini / GPT-4o) accessed strictly via Python backend with AWS Secrets Manager
+- **Hosting**: AWS Amplify
+- **Monitoring**: Amazon CloudWatch
 
 ---
 
 ## Project Structure
 
 ```
-AgriConnect/
-├── frontend/          React + Vite + TypeScript + Tailwind + Shadcn UI
-├── backend/           AWS Lambda (Node.js) – standalone deployment
-└── docs/              Architecture, schema, API, and roadmap documentation
+agriconnect/
+├── frontend/                     # React + Vite frontend application
+│   ├── src/
+│   │   ├── components/           # UI and domain components
+│   │   ├── pages/                # Role-aware dashboards & public views
+│   │   ├── layouts/              # Public, Protected, and Admin layouts
+│   │   ├── services/             # API and Cognito integration services
+│   │   ├── hooks/                # Custom React hooks
+│   │   ├── context/              # Authentication & state contexts
+│   │   ├── utils/                # Utilities and formatters
+│   │   └── routes/               # Route configurations and guards
+│   ├── public/
+│   ├── package.json
+│   └── vite.config.js
+│
+├── backend/                      # Python AWS Lambda backend
+│   ├── shared/                   # Shared backend utilities
+│   │   ├── auth.py               # JWT parsing and role verification
+│   │   ├── response.py           # Standard HTTP API response utilities & CORS
+│   │   ├── dynamodb.py           # DynamoDB boto3 resource wrapper
+│   │   ├── s3.py                 # S3 presigned URL generator
+│   │   ├── validation.py         # Request validation utilities
+│   │   ├── logging.py            # Structured JSON logger
+│   │   └── openai_client.py      # OpenAI backend client with Secrets Manager
+│   │
+│   ├── functions/                # Lambda function handlers
+│   │   ├── users/                # User profiles and onboarding
+│   │   ├── listings/             # Agricultural and by-product listings
+│   │   ├── search/               # Search and filtering
+│   │   ├── orders/               # Purchase orders and procurement
+│   │   ├── messages/             # Direct messaging
+│   │   ├── notifications/        # In-app alerts
+│   │   ├── ai/                   # OpenAI assistant & intent extraction
+│   │   └── admin/                # System administration & moderation
+│   │
+│   └── requirements.txt
+│
+├── docs/                         # System documentation
+│   ├── architecture/             # Architecture, roles, OpenAI & security specs
+│   ├── api/                      # HTTP API v2 routes & JWT lifecycle
+│   └── database/                 # Single-table schema & access patterns
+│
+├── .gitignore
+└── README.md
 ```
 
 ---
 
 ## Documentation
 
-| Document                              | Description                              |
-|---------------------------------------|------------------------------------------|
-| [Architecture](docs/architecture.md)  | System design and AWS service overview   |
-| [User Roles](docs/user-roles.md)       | Role definitions and permission matrix   |
-| [DynamoDB Schema](docs/dynamodb-schema.md) | Table design and access patterns    |
-| [API Endpoints](docs/api-endpoints.md)| Full REST API reference                  |
-| [Navigation Flow](docs/navigation-flow.md) | Route structure per role            |
-| [AWS Services Map](docs/aws-services-map.md) | Module → AWS service mapping      |
-| [Reusable Components](docs/reusable-components.md) | React component library plan |
-| [Roadmap](docs/roadmap.md)            | Phase-by-phase development plan          |
-
----
-
-## Tech Stack
-
-| Layer      | Technology                                          |
-|------------|-----------------------------------------------------|
-| Frontend   | React 18, Vite, TypeScript, Tailwind CSS, Shadcn UI |
-| Routing    | React Router v6                                     |
-| HTTP       | Axios                                               |
-| Backend    | AWS Lambda (Node.js 20.x)                           |
-| API        | Amazon API Gateway (REST)                           |
-| Database   | Amazon DynamoDB (single-table design)               |
-| Storage    | Amazon S3                                           |
-| Auth       | Amazon Cognito                                      |
-| Events     | Amazon EventBridge                                  |
-| Notify     | Amazon SNS                                          |
-| Maps       | Amazon Location Service                             |
-| AI         | Google Gemini API                                   |
-| Hosting    | AWS Amplify                                         |
-| Hosting/CD | AWS Amplify (CI/CD + CDN)                          |
-
----
-
-## Getting Started
-
-### Frontend
-
-```bash
-cd frontend
-npm install
-cp .env.example .env        # fill in your values
-npm run dev
-```
-
-### Backend
-
-```bash
-cd backend
-npm install
-cp .env.example .env        # fill in your values
-npm run build               # compiles TypeScript to dist/
-# Deploy Lambda functions via AWS Console or CLI
-# See docs/amplify-deployment-guide.md
-```
-
-### Deployment
-
-Frontend is deployed automatically via AWS Amplify Hosting.
-Push to `main` branch triggers CI/CD build and deployment.
-See [Amplify Deployment Guide](docs/amplify-deployment-guide.md) for setup.
-
----
-
-## Current Phase: 2 – Authentication & User Management
-
-Phase 1 (Foundation) is complete. Phase 2 is in progress:
-- Full architecture and documentation
-- Frontend skeleton (all routes, contexts, types, services, hooks)
-- Backend skeleton (Lambda handlers, shared lib)
-- DynamoDB single-table schema with GSIs
-- EventBridge event catalog
-- AWS Amplify Hosting configuration
-
-**Current:** Phase 2 – Authentication & User Management
+- [System Architecture](docs/architecture/system-architecture.md)
+- [Roles & Capability Matrix](docs/architecture/roles-and-capabilities.md)
+- [OpenAI Integration Architecture](docs/architecture/openai-integration.md)
+- [Security Architecture](docs/architecture/security-architecture.md)
+- [DynamoDB Single-Table Design](docs/database/dynamodb-single-table-design.md)
+- [DynamoDB Access Patterns](docs/database/access-patterns.md)
+- [HTTP API Specification](docs/api/http-api-specification.md)
+- [JWT Authentication Flow](docs/api/jwt-auth-flow.md)
